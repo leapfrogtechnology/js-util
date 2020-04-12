@@ -72,19 +72,6 @@ export function createBaseModel(resolver?: ConnectionResolver) {
     }
 
     /**
-     * Returns a query builder instance depending on the provided transaction.
-     *
-     * @deprecated In favor of `buildQuery`.
-     * @param {Transaction} [trx]
-     * @returns {(Transaction | Knex)}
-     */
-    public static queryBuilder(trx?: Transaction): Transaction | Knex {
-      log('Deprecated: `queryBuilder` has been deprecated in favor of `buildQuery`');
-
-      return db.queryBuilder(this.getConnection(), trx);
-    }
-
-    /**
      * Generic query builder.
      *
      * @param {(qb: Knex | Transaction) => QueryBuilder} callback
