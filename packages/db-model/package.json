@@ -1,0 +1,87 @@
+{
+  "name": "@leapfrogtechnology/db-model",
+  "version": "1.0.0-alpha.1",
+  "description": "Low-footprint database abstraction layer and model built on top of Knex.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leapfrogtechnology/js-util/db-model"
+  },
+  "bugs": {
+    "url": "https://github.com/leapfrogtechnology/js-util/issues"
+  },
+  "scripts": {
+    "lint": "tslint -c tslint.json 'src/**/*.{ts,js}' 'test/**/*.{ts,js}'",
+    "lint:fix": "tslint --fix -c tslint.json 'src/**/*.{ts,js}' 'test/**/*.{ts,js}'",
+    "transpile": "tsc",
+    "clean": "rimraf dist",
+    "codecov": "codecov",
+    "build": "NODE_ENV=production yarn clean && yarn transpile",
+    "test": "NODE_ENV=test mocha --recursive test/**/*.test.ts",
+    "test:watch": "NODE_ENV=test mocha --watch --recursive test/**/*.test.ts",
+    "test:coverage": "NODE_ENV=test nyc mocha --recursive test/**/*.test.ts",
+    "watch": "tsc --watch",
+    "prettify": "prettier --single-quote --parser typescript --print-width 120 --write './**/*.{ts,js}'",
+    "prepublishOnly": "yarn build",
+    "changelog": "./release.sh changelog",
+    "release": "./release.sh bump"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "tsc --noEmit"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "tslint --fix -c tslint.json",
+      "prettier --single-quote --parser typescript --print-width 120 --write './**/*.{ts,js}'",
+      "git add"
+    ]
+  },
+  "keywords": [
+    "typescript",
+    "javascript",
+    "db",
+    "model",
+    "database",
+    "knex",
+    "dbal"
+  ],
+  "authors": "Kabir Baidhya <kabirbaidhya@gmail.com>",
+  "dependencies": {
+    "camelize": "^1.0.0",
+    "debug": "4.1.1",
+    "knex": "0.20.11",
+    "ramda": "^0.27.0",
+    "snakeize": "^0.1.0"
+  },
+  "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^0.1.3",
+    "@types/chai": "^4.2.3",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/debug": "^4.1.5",
+    "@types/ramda": "^0.27.3",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "husky": "^3.0.7",
+    "lint-staged": "^9.4.0",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
+    "prettier": "^1.18.2",
+    "ts-node": "^8.4.1",
+    "tslint": "^5.20.0",
+    "tslint-config-leapfrog": "^1.0.3",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
+    "typescript": "^3.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
