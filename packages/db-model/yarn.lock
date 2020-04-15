@@ -2638,9 +2638,10 @@ slice-ansi@0.0.4:
   resolved "https://registry.yarnpkg.com/slice-ansi/-/slice-ansi-0.0.4.tgz#edbf8903f66f7ce2f8eafd6ceed65e264c831b35"
   integrity sha1-7b+JA/ZvfOL46v1s7tZeJkyDGzU=
 
-snakecase-keys@mesaugat/snakecase-keys#38efc7b:
-  version "3.1.2"
-  resolved "https://codeload.github.com/mesaugat/snakecase-keys/tar.gz/38efc7b47dd20cb09f099957d22706c8a69f4f77"
+snakecase-keys@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/snakecase-keys/-/snakecase-keys-3.2.0.tgz#3ac428d643c6634eca461192fc7f731378fa7bd1"
+  integrity sha512-WTJ0NhCH/37J+PU3fuz0x5b6TvtWQChTcKPOndWoUy0pteKOe0hrHMzSRsJOWSIP48EQkzUEsgQPmrG3W8pFNQ==
   dependencies:
     map-obj "^4.0.0"
     to-snake-case "^1.0.0"

@@ -63,7 +63,7 @@
     "debug": "4.1.1",
     "knex": "0.20.14",
     "ramda": "^0.27.0",
-    "snakecase-keys": "mesaugat/snakecase-keys#38efc7b"
+    "snakecase-keys": "^3.2.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
