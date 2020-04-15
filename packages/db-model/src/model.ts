@@ -1,11 +1,11 @@
-import * as debug from 'debug';
 import * as Knex from 'knex';
+import * as debug from 'debug';
 import { QueryBuilder, Transaction } from 'knex';
 
 import * as db from './db';
+import { NS_MODEL } from './constants';
 import * as object from './utils/object';
 import * as paginator from './utils/paginator';
-import { NS_MODEL } from './constants';
 
 import ModelNotFoundError from './ModelNotFoundError';
 import PaginationParams from './domain/PaginationParams';
