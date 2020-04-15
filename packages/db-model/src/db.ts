@@ -166,10 +166,7 @@ export async function findAll<T>(
   params: object = {},
   trx?: Knex.Transaction
 ): Promise<T[]> {
-  const rows = await queryBuilder(connection, trx)
-    .select('*')
-    .from(table)
-    .where(object.toSnakeCase(params));
+  const rows = await queryBuilder(connection, trx).select('*').from(table).where(object.toSnakeCase(params));
 
   return object.toCamelCase(rows);
 }
@@ -190,10 +187,7 @@ export async function insert<T>(
   trx?: Knex.Transaction
 ): Promise<T[]> {
   const qb = queryBuilder(connection, trx);
-  const result = await qb
-    .insert(object.toSnakeCase(data))
-    .into(table)
-    .returning('*');
+  const result = await qb.insert(object.toSnakeCase(data)).into(table).returning('*');
 
   return object.toCamelCase(result);
 }
@@ -219,8 +213,8 @@ export async function updateById<T>(
   const updateParams = await withTimestamp(connection, table, params);
 
   const result = await qb
-    .table(table)
     .update(updateParams)
+    .table(table)
     .whereIn('id', Array.isArray(id) ? id : [id])
     .returning('*');
 
@@ -245,11 +239,7 @@ export async function updateWhere<T>(
   const qb = queryBuilder(connection, trx);
   const updateParams = await withTimestamp(connection, table, params);
 
-  const result = await qb
-    .table(table)
-    .update(updateParams)
-    .where(object.toSnakeCase(where))
-    .returning('*');
+  const result = await qb.update(updateParams).table(table).where(object.toSnakeCase(where)).returning('*');
 
   return object.toCamelCase(result);
 }
@@ -265,11 +255,7 @@ export async function updateWhere<T>(
  */
 export async function remove<T>(connection: Knex, table: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
   const qb = queryBuilder(connection, trx);
-  const result = await qb
-    .from(table)
-    .where(object.toSnakeCase(params))
-    .del()
-    .returning('*');
+  const result = await qb.where(object.toSnakeCase(params)).from(table).del().returning('*');
 
   return object.toCamelCase(result);
 }
@@ -346,7 +332,7 @@ export async function getValue<T>(
     return null;
   }
 
-  const [value] = Object.values(data);
+  const [value] = Object.values<T>(data);
 
   return value;
 }
