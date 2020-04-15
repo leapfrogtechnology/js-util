@@ -19,26 +19,26 @@ jobs:
         node-version: [10.x, 12.x]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Install
-      working-directory: packages/db-model
-      run: yarn
+      - name: Install
+        working-directory: packages/db-model
+        run: yarn
 
-    - name: Lint
-      working-directory: packages/db-model
-      run: yarn lint:check && yarn prettier:check
+      - name: Lint
+        working-directory: packages/db-model
+        run: yarn lint:check && yarn prettier:check
 
-    - name: Build
-      working-directory: packages/db-model
-      run: yarn build
+      - name: Build
+        working-directory: packages/db-model
+        run: yarn build
 
-    - name: Test
-      working-directory: packages/db-model
-      run: yarn test
-      env:
-        CI: true
+      - name: Test
+        working-directory: packages/db-model
+        run: yarn test
+        env:
+          CI: true
