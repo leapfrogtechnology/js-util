@@ -16,17 +16,18 @@
     "url": "https://github.com/leapfrogtechnology/js-util/issues"
   },
   "scripts": {
-    "lint": "tslint -c tslint.json 'src/**/*.{ts,js}' 'test/**/*.{ts,js}'",
-    "lint:fix": "tslint --fix -c tslint.json 'src/**/*.{ts,js}' 'test/**/*.{ts,js}'",
-    "transpile": "tsc",
-    "clean": "rimraf dist",
+    "tsc": "tsc",
     "codecov": "codecov",
-    "build": "NODE_ENV=production yarn clean && yarn transpile",
-    "test": "NODE_ENV=test mocha --recursive test/**/*.test.ts",
-    "test:watch": "NODE_ENV=test mocha --watch --recursive test/**/*.test.ts",
+    "clean": "rimraf dist",
+    "tsc:watch": "tsc --watch",
+    "test": "mocha --recursive test/**/*.test.ts",
+    "build": "NODE_ENV=production yarn clean && yarn tsc",
     "test:coverage": "NODE_ENV=test nyc mocha --recursive test/**/*.test.ts",
-    "watch": "tsc --watch",
-    "prettify": "prettier --single-quote --parser typescript --print-width 120 --write './**/*.{ts,js}'",
+    "test:watch": "NODE_ENV=test mocha --watch --recursive test/**/*.test.ts",
+    "lint:fix": "tslint --fix -c tslint.json '{src,test}/**/*.{ts,js}'",
+    "lint:check": "tslint -c tslint.json '{src,test}/**/*.{ts,js}'",
+    "prettier:check": "prettier --check '{src,test}/**/*.{ts,js,md,json}'",
+    "prettify": "prettier --single-quote --print-width 120 --write '{src,test}/**/*.{ts,js,md,json}'",
     "prepublishOnly": "yarn build",
     "changelog": "./release.sh changelog",
     "release": "./release.sh bump"
@@ -39,8 +40,10 @@
   },
   "lint-staged": {
     "*.{ts,js}": [
-      "tslint --fix -c tslint.json",
-      "prettier --single-quote --parser typescript --print-width 120 --write"
+      "tslint --fix -c tslint.json"
+    ],
+    "*.{ts,js,md,json}": [
+      "prettier --single-quote --print-width 120 --write"
     ]
   },
   "keywords": [
@@ -50,7 +53,9 @@
     "model",
     "database",
     "knex",
-    "dbal"
+    "dbal",
+    "db-model",
+    "leapfrogtechnology"
   ],
   "authors": "Kabir Baidhya <kabirbaidhya@gmail.com>",
   "dependencies": {
