@@ -1,10 +1,10 @@
 # @leapfrogtechnology/db-model
 
 [![npm](https://img.shields.io/npm/v/@leapfrogtechnology/db-model.svg?style=flat-square)](https://www.npmjs.com/package/@leapfrogtechnology/db-model)
-[![Travis](https://img.shields.io/travis/com/leapfrogtechnology/db-model.svg?style=flat-square)](https://travis-ci.com/leapfrogtechnology/db-model)
-[![Codecov](https://img.shields.io/codecov/c/github/leapfrogtechnology/db-model?style=flat-square)](https://codecov.io/gh/leapfrogtechnology/db-model)
-[![LICENSE](https://img.shields.io/github/license/leapfrogtechnology/db-model.svg?style=flat-square)](https://github.com/leapfrogtechnology/db-model/blob/master/LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/leapfrogtechnology/db-model#contributing)
+![CI](https://github.com/leapfrogtechnology/js-util/workflows/CI/badge.svg?branch=master)
+[![Codecov](https://img.shields.io/codecov/c/github/leapfrogtechnology/js-util?style=flat-square)](https://codecov.io/gh/leapfrogtechnology/js-util)
+[![LICENSE](https://img.shields.io/github/license/leapfrogtechnology/js-util.svg?style=flat-square)](https://github.com/leapfrogtechnology/js-util/blob/master/packages/db-model/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/leapfrogtechnology/js-util#contributing)
 
 Low-footprint database abstraction layer and model built on top of [Knex](http://knexjs.org/).
 
