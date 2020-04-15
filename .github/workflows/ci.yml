@@ -1,6 +1,14 @@
 name: js-util CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - packages/**
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
@@ -16,8 +24,21 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: yarn
-    - run: yarn build
-    - run: yarn test
+
+    - name: Install dependencies
+      working-directory: packages/db-model
+      run: yarn
+
+    - name: Lint/Prettier check
+      working-directory: packages/db-model
+      run: yarn lint:check && yarn prettier:check
+
+    - name: Build
+      working-directory: packages/db-model
+      run: yarn build
+
+    - name: Test
+      working-directory: packages/db-model
+      run: yarn test
       env:
         CI: true
