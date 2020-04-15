@@ -27,7 +27,7 @@
     "lint:fix": "tslint --fix -c tslint.json '{src,test}/**/*.{ts,js}'",
     "lint:check": "tslint -c tslint.json '{src,test}/**/*.{ts,js}'",
     "prettier:check": "prettier --check '{src,test}/**/*.{ts,js,md,json}'",
-    "prettify": "prettier --single-quote --parser typescript --print-width 120 --write '{src,test}/**/*.{ts,js,md,json}'",
+    "prettify": "prettier --single-quote --print-width 120 --write '{src,test}/**/*.{ts,js,md,json}'",
     "prepublishOnly": "yarn build",
     "changelog": "./release.sh changelog",
     "release": "./release.sh bump"
@@ -39,9 +39,11 @@
     }
   },
   "lint-staged": {
+    "*.{ts,js}": [
+      "tslint --fix -c tslint.json"
+    ],
     "*.{ts,js,md,json}": [
-      "tslint --fix -c tslint.json",
-      "prettier --single-quote --parser typescript --print-width 120 --write"
+      "prettier --single-quote --print-width 120 --write"
     ]
   },
   "keywords": [
