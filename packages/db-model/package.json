@@ -54,11 +54,11 @@
   ],
   "authors": "Kabir Baidhya <kabirbaidhya@gmail.com>",
   "dependencies": {
-    "camelize": "^1.0.0",
+    "camelcase-keys": "^6.2.2",
     "debug": "4.1.1",
     "knex": "0.20.14",
     "ramda": "^0.27.0",
-    "snakeize": "^0.1.0"
+    "snakecase-keys": "mesaugat/snakecase-keys#38efc7b"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

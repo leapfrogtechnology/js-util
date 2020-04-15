@@ -1,36 +1,36 @@
-import snakeize = require('snakeize');
-import camelize = require('camelize');
+import * as snakecaseKeys from 'snakecase-keys';
+import * as camelcaseKeys from 'camelcase-keys';
 
 import { pick, equals } from 'ramda';
 
 /**
  * Recursively convert the object keys into camelCase.
  *
- * @param {any} object
+ * @param {any} obj
  * @returns {T}
  */
-export function toCamelCase<T>(object: any): T {
-  return camelize(object);
+export function toCamelCase<T>(obj: any): T {
+  return camelcaseKeys(obj, { deep: true });
 }
 
 /**
  * Recursively convert the object keys into snake_case.
  *
- * @param {any} object
+ * @param {any} obj
  * @returns {T}
  */
-export function toSnakeCase<T>(object: any): T {
-  return snakeize(object);
+export function toSnakeCase<T>(obj: any): T {
+  return snakecaseKeys(obj, { deep: true });
 }
 
 /**
  * Get the copy of list of objects without attributes.
  *
- * @param {object[]} obj
+ * @param {any[]} obj
  * @param {any[]} attrsToExclude
  * @returns {T[]}
  */
-export function listWithoutAttrs<T>(obj: object[], attrsToExclude: any[]): T[] {
+export function listWithoutAttrs<T>(obj: any[], attrsToExclude: any[]): T[] {
   return obj.map(item => withoutAttrs<T>(item, attrsToExclude));
 }
 
@@ -78,7 +78,7 @@ export function withOnlyAttrs<T>(obj: any, attrs: any[]): T {
 }
 
 /**
- * Parse JSON encoded string and return object with camelized keys.
+ * Parse JSON encoded string and return object with camelcase keys.
  *
  * @param {string} encoded
  * @returns {T}
