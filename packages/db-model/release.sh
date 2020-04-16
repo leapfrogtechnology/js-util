@@ -27,8 +27,10 @@ changelog() {
 bump() {
   # Bump package version and generate changelog
   VERSION="${NEXT/v/}"
+  PACKAGE_NAME=$(cat package.json | grep name | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+  TAG_NAME="${PACKAGE_NAME}@${VERSION}"
 
-  echo "Bump version to ${VERSION}"
+  echo "Bump version ${TAG_NAME}"
 
   # Update version in the following files
   sed -i "s/\(\"version\":\s*\"\)[^\"]*\(\"\)/\1${VERSION}\2/g" package.json
@@ -42,11 +44,11 @@ bump() {
 
   # Prepare to commit
   git add CHANGELOG.md package.json yarn.lock && \
-    git commit -v --edit -m "${VERSION} Release :tada: :fireworks: :bell:" && \
-    git tag "$NEXT" && \
-    echo -e "\nRelease tagged $NEXT"
-  git push origin HEAD --tags
-  yarn publish --new-version "${VERSION}" --no-git-tag-version
+    git commit -v --edit -m "Release ${TAG_NAME}"
+  #   git tag "${TAG_NAME}" && \
+  #   echo -e "\nRelease tagged $TAG_NAME"
+  # git push origin HEAD --tags
+  # yarn publish --new-version "${VERSION}" --no-git-tag-version
 }
 
 # Run command received from args.
