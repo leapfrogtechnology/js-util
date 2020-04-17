@@ -226,6 +226,16 @@ export function createBaseModel(resolver?: ConnectionResolver) {
     public static query<T>(sql: string, params?: RawBindingParams | ValueMap, trx?: Knex.Transaction): Promise<T[]> {
       return db.query<T>(this.getConnection(), sql, params, trx);
     }
+
+    /**
+     * Method to perform a transactional query execution.
+     *
+     * @param {(trx: Transaction) => any} callback
+     * @returns {any}
+     */
+    public static transaction<T>(callback: (trx: Knex.Transaction) => any): any {
+      return this.getConnection().transaction(callback);
+    }
   };
 }
 
