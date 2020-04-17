@@ -1,5 +1,5 @@
 /**
- * Output interface for final response of Paginator util module.
+ * Output interface for final response of pagination.
  */
 interface PaginationResult<T> {
   totalCount: number;
