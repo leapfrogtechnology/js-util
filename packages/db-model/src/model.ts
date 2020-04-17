@@ -197,7 +197,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {Transaction} transaction
      * @returns {Knex.QueryBuilder}
      */
-    public static deleteByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T[]> {
+    public static removeByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T[]> {
       const pkParams: { [key: string]: any } = {};
       pkParams[this.pk] = pk;
 
