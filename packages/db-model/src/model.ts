@@ -134,11 +134,12 @@ export function createBaseModel(resolver?: ConnectionResolver) {
       pageParams: PaginationParams,
       trx?: Knex.Transaction
     ): Promise<T> {
-      return new Promise<T>(async (resolve, reject) => {
+      return new Promise<any>(async (resolve, reject) => {
         const qb = db.find<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
 
         const countQb = qb.clone();
-        const count = await countQb.clearSelect().clearOrder().count('*');
+        const countResult = await countQb.clearSelect().clearOrder().count('*');
+        const count = countResult[0].count;
 
         const offset = (pageParams.page - 1) * pageParams.pageSize;
         const records = await qb.offset(offset).limit(pageParams.pageSize);
