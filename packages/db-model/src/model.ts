@@ -6,6 +6,7 @@ import { NS_MODEL } from './constants';
 import PaginationParams from './domain/PaginationParams';
 import { buildPages } from './utils/pagination';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
+import SortParams from './domain/SortParams';
 
 const log = debug(NS_MODEL);
 
@@ -124,13 +125,22 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @throws {ModelNotFoundError}
      * @returns {Promise<T>}
      */
-    public static findWithPagination<T>(
+    public static findWithPageAndSort<T>(
       params: object = {},
       pageParams: PaginationParams,
+      sortParams: SortParams[],
       trx?: Knex.Transaction
     ): Promise<T> {
       return new Promise<any>(async (resolve, reject) => {
         const qb = db.find<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
+
+        if (sortParams.length > 0) {
+          qb.clearOrder();
+        }
+
+        sortParams.forEach(item => {
+          qb.orderBy(item.sort, item.direction);
+        });
 
         const countQb = qb.clone();
         const countResult = await countQb.clearSelect().clearOrder().count('*');
