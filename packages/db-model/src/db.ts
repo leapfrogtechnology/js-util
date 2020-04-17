@@ -2,7 +2,6 @@ import * as Knex from 'knex';
 import * as debug from 'debug';
 
 import { NS_DB } from './constants';
-import * as object from './utils/object';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
 
 // interface BatchUpdateOptions {
