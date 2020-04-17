@@ -101,7 +101,7 @@ export function find<T>(
   orderBy: string,
   trx?: Knex.Transaction
 ): Knex.QueryBuilder {
-  let qb = queryBuilder(connection, trx).select('*').from(table).where(object.toSnakeCase(params));
+  let qb = queryBuilder(connection, trx).select('*').from(table).where(params);
 
   qb = orderBy ? qb.orderBy(orderBy) : qb;
 
@@ -120,7 +120,7 @@ export function find<T>(
 export function insert<T>(connection: Knex, table: string, data: object, trx?: Knex.Transaction): Knex.QueryBuilder {
   const qb = queryBuilder(connection, trx);
 
-  return qb.insert(object.toSnakeCase(data)).into(table).returning('*');
+  return qb.insert(data).into(table).returning('*');
 }
 
 /**
@@ -140,7 +140,7 @@ export function update<T>(
 ): Knex.QueryBuilder {
   const qb = queryBuilder(connection, trx);
 
-  return qb.update(params).table(table).where(object.toSnakeCase(where)).returning('*');
+  return qb.update(params).table(table).where(where).returning('*');
 }
 
 /**
@@ -197,5 +197,5 @@ export function batchInsert<T>(
 ): Knex.QueryBuilder {
   const qb = queryBuilder(connection, trx);
 
-  return qb.batchInsert(table, object.toSnakeCase(data), chunkSize).returning('*');
+  return qb.batchInsert(table, data, chunkSize).returning('*');
 }
