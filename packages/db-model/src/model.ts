@@ -134,13 +134,13 @@ export function createBaseModel(resolver?: ConnectionResolver) {
       return new Promise<any>(async (resolve, reject) => {
         const qb = db.find<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
 
-        if (sortParams.length > 0) {
+        if (sortParams && sortParams.length > 0) {
           qb.clearOrder();
-        }
 
-        sortParams.forEach(item => {
-          qb.orderBy(item.sort, item.direction);
-        });
+          sortParams.forEach(item => {
+            qb.orderBy(item.sort, item.direction);
+          });
+        }
 
         const countQb = qb.clone();
         const countResult = await countQb.clearSelect().clearOrder().count('*');
