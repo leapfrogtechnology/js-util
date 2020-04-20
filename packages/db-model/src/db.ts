@@ -1,6 +1,7 @@
 import * as Knex from 'knex';
 import * as debug from 'debug';
 
+import OrderBy from './domain/OrderBy';
 import { NS_DB } from './constants';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
 
@@ -78,7 +79,7 @@ export function findFirst<T>(
   connection: Knex,
   table: string,
   params: object = {},
-  orderBy: string,
+  orderBy: OrderBy[],
   trx?: Knex.Transaction
 ): Knex.QueryBuilder {
   return find(connection, table, params, orderBy, trx).limit(1);
@@ -97,12 +98,14 @@ export function find<T>(
   connection: Knex,
   table: string,
   params: object = {},
-  orderBy: string,
+  orderBy: OrderBy[],
   trx?: Knex.Transaction
 ): Knex.QueryBuilder {
   let qb = queryBuilder(connection, trx).select('*').from(table).where(params);
 
-  qb = orderBy ? qb.orderBy(orderBy) : qb;
+  orderBy.forEach(item => {
+    qb = qb.orderBy(item.field, item.direction);
+  });
 
   return qb;
 }

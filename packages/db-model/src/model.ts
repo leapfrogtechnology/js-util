@@ -6,7 +6,7 @@ import { NS_MODEL } from './constants';
 import PaginationParams from './domain/PaginationParams';
 import { buildPages } from './utils/pagination';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
-import SortParams from './domain/SortParams';
+import OrderBy from './domain/OrderBy';
 
 const log = debug(NS_MODEL);
 
@@ -21,7 +21,7 @@ export type ConnectionResolver = () => Knex;
 export function createBaseModel(resolver?: ConnectionResolver) {
   return class BaseModel {
     public static table: string;
-    public static defaultOrderBy = 'id';
+    public static defaultOrderBy: OrderBy[] = [{ field: 'id', direction: 'asc' }];
     public static pk = 'id';
     public static connection?: Knex;
 
@@ -128,7 +128,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
     public static findWithPageAndSort<T>(
       params: object = {},
       pageParams: PaginationParams,
-      sortParams: SortParams[],
+      sortParams: OrderBy[],
       trx?: Knex.Transaction
     ): Promise<T> {
       return new Promise<any>(async (resolve, reject) => {
@@ -138,7 +138,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
           qb.clearOrder();
 
           sortParams.forEach(item => {
-            qb.orderBy(item.sort, item.direction);
+            qb.orderBy(item.field, item.direction);
           });
         }
 
@@ -235,6 +235,22 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      */
     public static query<T>(sql: string, params?: RawBindingParams | ValueMap, trx?: Knex.Transaction): Promise<T[]> {
       return db.query<T>(this.getConnection(), sql, params, trx);
+    }
+
+    /**
+     * Generic query builder.
+     *
+     * @param {(qb: Knex | Transaction) => QueryBuilder} callback
+     * @param {Transaction} [trx]
+     * @returns {Promise<T[]>}
+     */
+    public static async buildQuery<T>(
+      callback: (qb: Knex | Knex.Transaction) => Knex.QueryBuilder,
+      trx?: Knex.Transaction
+    ): Promise<T[]> {
+      const qb = db.queryBuilder(this.getConnection(), trx);
+
+      return callback(qb);
     }
 
     /**
