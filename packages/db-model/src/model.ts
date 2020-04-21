@@ -73,37 +73,44 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} [params={}]
      * @param {Knex.Transaction} trx
+     * @param {Function} callback
      * @returns {Promise<any>}
      */
-    public static findFirst(params: object = {}, trx?: Knex.Transaction): Promise<any> {
-      return db.findFirst(this.getConnection(), this.table, params, this.defaultOrderBy, trx).then(([result]) => {
-        return result;
-      });
+    public static findFirst(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
+      return db
+        .findFirst(this.getConnection(), this.table, params, this.defaultOrderBy, callback, trx)
+        .then(([result]) => {
+          return result;
+        });
     }
 
     /**
      * Find by primary key
      *
      * @param {string} pk
+     * @param {Function} callback
      * @param {Knex.Transaction} trx
      * @returns {Promise<any>}
      */
-    public static findByPk(pk: string, trx?: Knex.Transaction): Promise<any> {
+    public static findByPk(pk: string, callback?: any, trx?: Knex.Transaction): Promise<any> {
       const pkParams = { [this.pk]: pk };
 
-      return db.findFirst(this.getConnection(), this.table, pkParams, this.defaultOrderBy, trx).then(([result]) => {
-        return result;
-      });
+      return db
+        .findFirst(this.getConnection(), this.table, pkParams, this.defaultOrderBy, callback, trx)
+        .then(([result]) => {
+          return result;
+        });
     }
 
     /**
      * Finds records based on the params.
      *
      * @param {object} [params={}]
+     * @param {Function} callback
      * @param {Knex.Transaction} trx
      * @returns {Promise<any>}
      */
-    public static find(params: object = {}, trx?: Knex.Transaction): Promise<any> {
+    public static find(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
       return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
     }
 
@@ -113,6 +120,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {object} [params={}]
      * @param {PaginationParams} pageParams
      * @param {OrderBy[]} sortParams
+     * @param {Function} callback
      * @param {Knex.Transaction} trx
      * @returns {Knex.QueryBuilder}
      */
@@ -120,6 +128,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
       params: any = {},
       pageParams: PaginationParams,
       sortParams: OrderBy[],
+      callback?: any,
       trx?: Knex.Transaction
     ): Promise<any> {
       const offset = (pageParams.page - 1) * pageParams.pageSize;
@@ -136,35 +145,31 @@ export function createBaseModel(resolver?: ConnectionResolver) {
         });
       }
 
+      if (callback) callback(qb);
+
       return qb;
     }
 
     /**
-     * Build the information for pagination
+     * Count the total records.
      *
      * @param {object} [params={}]
-     * @param {PaginationParams} pageParams
+     * @param {Function} callback
      * @param {Knex.Transaction} trx
      * @returns {Knex.QueryBuilder}
      */
-    public static findPaginationData(
-      params: any = {},
-      pageParams: PaginationParams,
-      trx?: Knex.Transaction
-    ): Promise<any> {
-      return db
+    public static count(params: any = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
+      const qb = db
         .find(this.getConnection(), this.table, params, this.defaultOrderBy, trx)
         .clearSelect()
         .count('*')
-        .clearOrder()
-        .then(([result]) => {
-          const temp = {
-            totalCount: result.count,
-            maxRows: pageParams.pageSize
-          };
+        .clearOrder();
 
-          return temp;
-        });
+      if (callback) callback(qb);
+
+      return qb.then(([result]) => {
+        return result.count;
+      });
     }
 
     /**

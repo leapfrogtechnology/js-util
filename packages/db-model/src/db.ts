@@ -72,6 +72,7 @@ export function queryBuilder(connection: Knex, trx?: Knex.Transaction): Knex.Tra
  * @param {Knex} connection
  * @param {string} table
  * @param {object} [params={}]
+ * @param {Function} callback
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.QueryBuilder}
  */
@@ -80,9 +81,10 @@ export function findFirst(
   table: string,
   params: object = {},
   orderBy: OrderBy[],
+  callback?: any,
   trx?: Knex.Transaction
 ): Knex.QueryBuilder {
-  return find(connection, table, params, orderBy, trx).limit(1);
+  return find(connection, table, params, orderBy, callback, trx).limit(1);
 }
 
 /**
@@ -91,6 +93,7 @@ export function findFirst(
  * @param {Knex} connection
  * @param {string} table
  * @param {object} [params={}]
+ * @param {Function} callback
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.QueryBuilder}
  */
@@ -99,6 +102,7 @@ export function find(
   table: string,
   params: object = {},
   orderBy: OrderBy[],
+  callback?: any,
   trx?: Knex.Transaction
 ): Knex.QueryBuilder {
   let qb = queryBuilder(connection, trx).select('*').from(table).where(params);
@@ -106,6 +110,8 @@ export function find(
   orderBy.forEach(item => {
     qb = qb.orderBy(item.field, item.direction);
   });
+
+  if (callback) callback(qb);
 
   return qb;
 }
