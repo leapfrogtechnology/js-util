@@ -235,19 +235,14 @@ export function createBaseModel(resolver?: ConnectionResolver) {
     }
 
     /**
-     * Generic query builder.
+     * Returns a query builder instance depending on the provided transaction.
      *
-     * @param {(qb: Knex | Transaction) => QueryBuilder} callback
-     * @param {Transaction} [trx]
-     * @returns {Promise<T[]>}
+     * @param {Knex} connection
+     * @param {Knex.Transaction} [trx]
+     * @returns {(Knex.Transaction | Knex)}
      */
-    public static async buildQuery<T>(
-      callback: (qb: Knex | Knex.Transaction) => Knex.QueryBuilder,
-      trx?: Knex.Transaction
-    ): Promise<T[]> {
-      const qb = db.queryBuilder(this.getConnection(), trx);
-
-      return callback(qb);
+    public static queryBuilder(connection: Knex, trx?: Knex.Transaction): Knex.Transaction | Knex {
+      return db.queryBuilder(connection, trx);
     }
 
     /**
