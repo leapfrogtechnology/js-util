@@ -74,13 +74,11 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} [params={}]
      * @param {Knex.Transaction} trx
-     * @returns {Promise<T>}
+     * @returns {Promise<any>}
      */
-    public static findFirst<T>(params: object = {}, trx?: Knex.Transaction): Promise<T> {
-      return new Promise<T>(async (resolve, reject) => {
-        const [result] = await db.findFirst<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
-
-        resolve(result);
+    public static findFirst(params: object = {}, trx?: Knex.Transaction): Promise<any> {
+      return db.findFirst(this.getConnection(), this.table, params, this.defaultOrderBy, trx).then(([result]) => {
+        return result;
       });
     }
 
@@ -89,15 +87,13 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {string} pk
      * @param {Knex.Transaction} trx
-     * @returns {Promise<T>}
+     * @returns {Promise<any>}
      */
-    public static findByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T> {
-      return new Promise<T>(async (resolve, reject) => {
-        const pkParams = { [this.pk]: pk };
+    public static findByPk(pk: string, trx?: Knex.Transaction): Promise<any> {
+      const pkParams = { [this.pk]: pk };
 
-        const [result] = await db.findFirst<T>(this.getConnection(), this.table, pkParams, this.defaultOrderBy, trx);
-
-        resolve(result);
+      return db.findFirst(this.getConnection(), this.table, pkParams, this.defaultOrderBy, trx).then(([result]) => {
+        return result;
       });
     }
 
@@ -106,13 +102,11 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} [params={}]
      * @param {Knex.Transaction} trx
-     * @returns {Promise<T>}
+     * @returns {Promise<any>}
      */
-    public static find<T>(params: object = {}, trx?: Knex.Transaction): Promise<T> {
-      return new Promise<T>(async (resolve, reject) => {
-        const result = await db.find<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
-
-        resolve(result);
+    public static find(params: object = {}, trx?: Knex.Transaction): Promise<any> {
+      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx).then(([result]) => {
+        return result;
       });
     }
 
@@ -122,16 +116,16 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {object} [params={}]
      * @param {Knex.Transaction} trx
      * @throws {ModelNotFoundError}
-     * @returns {Promise<T>}
+     * @returns {Knex.QueryBuilder}
      */
-    public static findWithPageAndSort<T>(
+    public static findWithPageAndSort(
       params: any = {},
       pageParams: PaginationParams,
       sortParams: OrderBy[],
       trx?: Knex.Transaction
-    ): Promise<T> {
+    ): Promise<any> {
       return new Promise<any>(async (resolve, reject) => {
-        const qb = db.find<T>(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
+        const qb = db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
 
         if (sortParams && sortParams.length > 0) {
           qb.clearOrder();
@@ -166,10 +160,10 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {(object | object[])} data
      * @param {Transaction} [trx]
-     * @returns {Promise<T[]>}
+     * @returns {Knex.QueryBuilder}
      */
-    public static insert<T>(data: object | object[], trx?: Knex.Transaction): Promise<T[]> {
-      return db.insert<T>(this.getConnection(), this.table, data, trx);
+    public static insert(data: object | object[], trx?: Knex.Transaction): Knex.QueryBuilder {
+      return db.insert(this.getConnection(), this.table, data, trx);
     }
 
     /**
@@ -180,10 +174,10 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {Transaction} transaction
      * @returns {Knex.QueryBuilder}
      */
-    public static updateByPk<T>(pk: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
+    public static updateByPk(pk: string, params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
       const pkParams = { [this.pk]: pk };
 
-      return db.update<T>(this.getConnection(), this.table, pkParams, params, trx);
+      return db.update(this.getConnection(), this.table, pkParams, params, trx);
     }
 
     /**
@@ -194,8 +188,8 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {Transaction} transaction
      * @returns {Knex.QueryBuilder}
      */
-    public static updateWhere<T>(where: object, params: object, trx?: Knex.Transaction): Promise<T[]> {
-      return db.update<T>(this.getConnection(), this.table, where, params, trx);
+    public static updateWhere(where: object, params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
+      return db.update(this.getConnection(), this.table, where, params, trx);
     }
 
     /**
@@ -205,10 +199,10 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {Transaction} transaction
      * @returns {Knex.QueryBuilder}
      */
-    public static removeByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T[]> {
+    public static removeByPk(pk: string, trx?: Knex.Transaction): Knex.QueryBuilder {
       const pkParams = { [this.pk]: pk };
 
-      return db.remove<T>(this.getConnection(), this.table, pkParams, trx);
+      return db.remove(this.getConnection(), this.table, pkParams, trx);
     }
 
     /**
@@ -216,10 +210,10 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} params
      * @param {Transaction} trx
-     * @returns {Promise<T[]>}
+     * @returns {Knex.QueryBuilder}
      */
-    public static deleteWhere<T>(params: object, trx?: Knex.Transaction): Promise<T[]> {
-      return db.remove<T>(this.getConnection(), this.table, params, trx);
+    public static deleteWhere(params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
+      return db.remove(this.getConnection(), this.table, params, trx);
     }
 
     /**
@@ -228,10 +222,10 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {string} sql
      * @param {params} Array
      * @param {Knex.Transaction} trx
-     * @returns {Knex.QueryBuilder}
+     * @returns {Knex.Raw}
      */
-    public static query<T>(sql: string, params?: RawBindingParams | ValueMap, trx?: Knex.Transaction): Promise<T[]> {
-      return db.query<T>(this.getConnection(), sql, params, trx);
+    public static raw(sql: string, params?: RawBindingParams | ValueMap, trx?: Knex.Transaction): Knex.Raw {
+      return db.raw(this.getConnection(), sql, params, trx);
     }
 
     /**
@@ -242,7 +236,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {(Knex.Transaction | Knex)}
      */
     public static queryBuilder(connection: Knex, trx?: Knex.Transaction): Knex.Transaction | Knex {
-      return db.queryBuilder(connection, trx);
+      return db.queryBuilder(this.getConnection(), trx);
     }
 
     /**
@@ -251,7 +245,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {(trx: Transaction) => any} callback
      * @returns {any}
      */
-    public static transaction<T>(callback: (trx: Knex.Transaction) => any): any {
+    public static transaction(callback: (trx: Knex.Transaction) => any): any {
       return this.getConnection().transaction(callback);
     }
   };

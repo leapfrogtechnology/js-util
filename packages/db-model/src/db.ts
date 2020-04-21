@@ -75,7 +75,7 @@ export function queryBuilder(connection: Knex, trx?: Knex.Transaction): Knex.Tra
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.QueryBuilder}
  */
-export function findFirst<T>(
+export function findFirst(
   connection: Knex,
   table: string,
   params: object = {},
@@ -94,7 +94,7 @@ export function findFirst<T>(
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.QueryBuilder}
  */
-export function find<T>(
+export function find(
   connection: Knex,
   table: string,
   params: object = {},
@@ -119,7 +119,7 @@ export function find<T>(
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.QueryBuilder}
  */
-export function insert<T>(connection: Knex, table: string, data: object, trx?: Knex.Transaction): Knex.QueryBuilder {
+export function insert(connection: Knex, table: string, data: object, trx?: Knex.Transaction): Knex.QueryBuilder {
   const qb = queryBuilder(connection, trx);
 
   return qb.insert(data).into(table).returning('*');
@@ -133,7 +133,7 @@ export function insert<T>(connection: Knex, table: string, data: object, trx?: K
  * @param {Transaction} transaction
  * @returns {Knex.QueryBuilder}
  */
-export function update<T>(
+export function update(
   connection: Knex,
   table: string,
   where: object,
@@ -154,7 +154,7 @@ export function update<T>(
  * @param {Transaction} trx
  * @returns {Knex.QueryBuilder}
  */
-export function remove<T>(connection: Knex, table: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
+export function remove(connection: Knex, table: string, params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
   const qb = queryBuilder(connection, trx);
 
   return qb.where(params).from(table).del().returning('*');
@@ -169,7 +169,7 @@ export function remove<T>(connection: Knex, table: string, params: object, trx?:
  * @param {Knex.Transaction} [trx]
  * @returns {Knex.Raw}
  */
-export function query<T>(
+export function raw(
   connection: Knex,
   sql: string,
   params?: RawBindingParams | ValueMap,
@@ -188,9 +188,9 @@ export function query<T>(
  * @param {object[]} data
  * @param {number} chunkSize
  * @param {Knex.Transaction} [trx]
- * @returns {Promise<T[]>}
+ * @returns {Knex.QueryBuilder}
  */
-export function batchInsert<T>(
+export function batchInsert(
   connection: Knex,
   table: string,
   data: object[],
