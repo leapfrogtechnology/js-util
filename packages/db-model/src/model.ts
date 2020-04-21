@@ -2,11 +2,10 @@ import * as Knex from 'knex';
 import * as debug from 'debug';
 
 import * as db from './db';
+import OrderBy from './domain/OrderBy';
 import { NS_MODEL } from './constants';
 import PaginationParams from './domain/PaginationParams';
-import { buildPages } from './utils/pagination';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
-import OrderBy from './domain/OrderBy';
 
 const log = debug(NS_MODEL);
 
@@ -105,17 +104,16 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Promise<any>}
      */
     public static find(params: object = {}, trx?: Knex.Transaction): Promise<any> {
-      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx).then(([result]) => {
-        return result;
-      });
+      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
     }
 
     /**
      * Finds records based on the params with records limit.
      *
      * @param {object} [params={}]
+     * @param {PaginationParams} pageParams
+     * @param {OrderBy[]} sortParams
      * @param {Knex.Transaction} trx
-     * @throws {ModelNotFoundError}
      * @returns {Knex.QueryBuilder}
      */
     public static findWithPageAndSort(
@@ -124,35 +122,49 @@ export function createBaseModel(resolver?: ConnectionResolver) {
       sortParams: OrderBy[],
       trx?: Knex.Transaction
     ): Promise<any> {
-      return new Promise<any>(async (resolve, reject) => {
-        const qb = db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
+      const offset = (pageParams.page - 1) * pageParams.pageSize;
+      const qb = db
+        .find(this.getConnection(), this.table, params, this.defaultOrderBy, trx)
+        .offset(offset)
+        .limit(pageParams.pageSize);
 
-        if (sortParams && sortParams.length > 0) {
-          qb.clearOrder();
+      if (sortParams && sortParams.length > 0) {
+        qb.clearOrder();
 
-          sortParams.forEach(item => {
-            qb.orderBy(item.field, item.direction);
-          });
-        }
+        sortParams.forEach(item => {
+          qb.orderBy(item.field, item.direction);
+        });
+      }
 
-        const countQb = qb.clone();
-        const countResult = await countQb.clearSelect().clearOrder().count('*');
-        const count = countResult[0].count;
+      return qb;
+    }
 
-        const offset = (pageParams.page - 1) * pageParams.pageSize;
-        const records = await qb.offset(offset).limit(pageParams.pageSize);
+    /**
+     * Build the information for pagination
+     *
+     * @param {object} [params={}]
+     * @param {PaginationParams} pageParams
+     * @param {Knex.Transaction} trx
+     * @returns {Knex.QueryBuilder}
+     */
+    public static findPaginationData(
+      params: any = {},
+      pageParams: PaginationParams,
+      trx?: Knex.Transaction
+    ): Promise<any> {
+      return db
+        .find(this.getConnection(), this.table, params, this.defaultOrderBy, trx)
+        .clearSelect()
+        .count('*')
+        .clearOrder()
+        .then(([result]) => {
+          const temp = {
+            totalCount: result.count,
+            maxRows: pageParams.pageSize
+          };
 
-        const result = {
-          totalCount: count,
-          maxRows: pageParams.pageSize,
-
-          pages: buildPages(pageParams.page, pageParams.pageSize, count),
-
-          results: records
-        };
-
-        resolve(result);
-      });
+          return temp;
+        });
     }
 
     /**
