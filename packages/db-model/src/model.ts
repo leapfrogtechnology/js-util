@@ -93,8 +93,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      */
     public static findByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T> {
       return new Promise<T>(async (resolve, reject) => {
-        const pkParams: { [key: string]: any } = {};
-        pkParams[this.pk] = pk;
+        const pkParams = { [this.pk]: pk };
 
         const [result] = await db.findFirst<T>(this.getConnection(), this.table, pkParams, this.defaultOrderBy, trx);
 
@@ -126,7 +125,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Promise<T>}
      */
     public static findWithPageAndSort<T>(
-      params: object = {},
+      params: any = {},
       pageParams: PaginationParams,
       sortParams: OrderBy[],
       trx?: Knex.Transaction
@@ -182,8 +181,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Knex.QueryBuilder}
      */
     public static updateByPk<T>(pk: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
-      const pkParams: { [key: string]: any } = {};
-      pkParams[this.pk] = pk;
+      const pkParams = { [this.pk]: pk };
 
       return db.update<T>(this.getConnection(), this.table, pkParams, params, trx);
     }
@@ -208,8 +206,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Knex.QueryBuilder}
      */
     public static removeByPk<T>(pk: string, trx?: Knex.Transaction): Promise<T[]> {
-      const pkParams: { [key: string]: any } = {};
-      pkParams[this.pk] = pk;
+      const pkParams = { [this.pk]: pk };
 
       return db.remove<T>(this.getConnection(), this.table, pkParams, trx);
     }

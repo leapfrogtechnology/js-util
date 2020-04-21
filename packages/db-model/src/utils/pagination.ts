@@ -1,5 +1,5 @@
 /**
- * Build the pages for PaginationResult
+ * Build the pages for PaginationResult.
  *
  * @param {number} page
  * @param {number} pageSize
