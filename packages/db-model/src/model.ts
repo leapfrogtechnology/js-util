@@ -151,7 +151,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
           results: records
         };
 
-        return result;
+        resolve(result);
       });
     }
 
