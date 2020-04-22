@@ -6,6 +6,7 @@ import OrderBy from './domain/OrderBy';
 import { NS_MODEL } from './constants';
 import PaginationParams from './domain/PaginationParams';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
+import ModelNotFoundError from './ModelNotFoundError';
 
 const log = debug(NS_MODEL);
 
@@ -73,13 +74,21 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} [params={}]
      * @param {Knex.Transaction} trx
+     * @param {boolean} shouldFailIfNotFound
      * @param {Function} callback
      * @returns {Promise<any>}
      */
-    public static findFirst(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
+    public static findFirst(
+      params: object = {},
+      shouldFailIfNotFound?: boolean,
+      callback?: any,
+      trx?: Knex.Transaction
+    ): Promise<any> {
       return db
         .findFirst(this.getConnection(), this.table, params, this.defaultOrderBy, callback, trx)
         .then(([result]) => {
+          if (!result && shouldFailIfNotFound) throw new ModelNotFoundError('No row found for the given identifier.');
+
           return result;
         });
     }
@@ -88,16 +97,24 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * Find by primary key
      *
      * @param {string} pk
+     * @param {boolean} shouldFailIfNotFound
      * @param {Function} callback
      * @param {Knex.Transaction} trx
      * @returns {Promise<any>}
      */
-    public static findByPk(pk: string, callback?: any, trx?: Knex.Transaction): Promise<any> {
+    public static findByPk(
+      pk: string,
+      shouldFailIfNotFound?: boolean,
+      callback?: any,
+      trx?: Knex.Transaction
+    ): Promise<any> {
       const pkParams = { [this.pk]: pk };
 
       return db
         .findFirst(this.getConnection(), this.table, pkParams, this.defaultOrderBy, callback, trx)
         .then(([result]) => {
+          if (!result && shouldFailIfNotFound) throw new ModelNotFoundError('No row found for the given identifier.');
+
           return result;
         });
     }
