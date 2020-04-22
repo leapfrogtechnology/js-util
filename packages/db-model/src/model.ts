@@ -128,7 +128,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Promise<any>}
      */
     public static find(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
-      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, trx);
+      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, callback, trx);
     }
 
     /**
