@@ -1,5 +1,13 @@
 # Change Log
 
+## [@leapfrogtechnology/db-model@1.0.0-beta.2](https://github.com/leapfrogtechnology/js-util/tree/@leapfrogtechnology/db-model@1.0.0-beta.2) (2020-04-25)
+
+[Full Changelog](https://github.com/leapfrogtechnology/js-util/compare/@leapfrogtechnology/db-model@1.0.0-beta.1...@leapfrogtechnology/db-model@1.0.0-beta.2)
+
+**Changes**
+
+- Make knex a peer dependency [\#6](https://github.com/leapfrogtechnology/js-util/pull/6) ([mesaugat](https://github.com/mesaugat))
+
 ## [@leapfrogtechnology/db-model@1.0.0-beta.1](https://github.com/leapfrogtechnology/js-util/tree/@leapfrogtechnology/db-model@1.0.0-beta.1) (2020-04-16)
 
 **Changes**

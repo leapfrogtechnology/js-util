@@ -1,6 +1,6 @@
 {
   "name": "@leapfrogtechnology/db-model",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Low-footprint database abstraction layer and model built on top of Knex.",
   "license": "MIT",
   "main": "dist/index.js",
