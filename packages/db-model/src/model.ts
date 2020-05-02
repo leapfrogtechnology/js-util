@@ -1,12 +1,15 @@
 import * as Knex from 'knex';
 import * as debug from 'debug';
+import { Transaction } from 'knex';
 
 import * as db from './db';
 import OrderBy from './domain/OrderBy';
 import { NS_MODEL } from './constants';
-import PaginationParams from './domain/PaginationParams';
-import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
+
 import ModelNotFoundError from './ModelNotFoundError';
+import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
+import PaginationParams from './domain/PaginationParams';
+import { any } from 'ramda';
 
 const log = debug(NS_MODEL);
 
@@ -22,7 +25,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
   return class BaseModel {
     public static table: string;
     public static defaultOrderBy: OrderBy[] = [{ field: 'id', direction: 'asc' }];
-    public static pk = 'id';
+    public static id = 'id';
     public static connection?: Knex;
 
     /**
@@ -70,65 +73,74 @@ export function createBaseModel(resolver?: ConnectionResolver) {
     }
 
     /**
-     * Finds a single record based on the params.
+     * Generic query builder.
      *
-     * @param {object} [params={}]
-     * @param {Knex.Transaction} trx
-     * @param {boolean} shouldFailIfNotFound
-     * @param {Function} callback
-     * @returns {Promise<any>}
+     * @param {Transaction} [trx]
+     * @returns {(Knex.Transaction | Knex)}
      */
-    public static findFirst(
-      params: object = {},
-      shouldFailIfNotFound?: boolean,
-      callback?: any,
-      trx?: Knex.Transaction
-    ): Promise<any> {
-      return db
-        .findFirst(this.getConnection(), this.table, params, this.defaultOrderBy, callback, trx)
-        .then(([result]) => {
-          if (!result && shouldFailIfNotFound) throw new ModelNotFoundError('No row found for the given identifier.');
-
-          return result;
-        });
+    public static queryBuilder(trx?: Transaction): Knex.Transaction | Knex {
+      return db.queryBuilder(this.getConnection(), trx);
     }
 
     /**
-     * Find by primary key
-     *
-     * @param {string} pk
-     * @param {boolean} shouldFailIfNotFound
-     * @param {Function} callback
-     * @param {Knex.Transaction} trx
-     * @returns {Promise<any>}
-     */
-    public static findByPk(
-      pk: string,
-      shouldFailIfNotFound?: boolean,
-      callback?: any,
-      trx?: Knex.Transaction
-    ): Promise<any> {
-      const pkParams = { [this.pk]: pk };
-
-      return db
-        .findFirst(this.getConnection(), this.table, pkParams, this.defaultOrderBy, callback, trx)
-        .then(([result]) => {
-          if (!result && shouldFailIfNotFound) throw new ModelNotFoundError('No row found for the given identifier.');
-
-          return result;
-        });
-    }
-
-    /**
-     * Finds records based on the params.
+     * Finds a record based on the params.
      *
      * @param {object} [params={}]
      * @param {Function} callback
      * @param {Knex.Transaction} trx
-     * @returns {Promise<any>}
+     * @returns {Knex.QueryBuilder}
      */
-    public static find(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
-      return db.find(this.getConnection(), this.table, params, this.defaultOrderBy, callback, trx);
+    public static find<T>(params: object = {}, callback?: any, trx?: Knex.Transaction): Knex.QueryBuilder {
+      return db.find<T>(this.getConnection(), this.table, params, callback, trx);
+    }
+
+    /**
+     * Finds the first record based on the params.
+     *
+     * @param {object} [params={}]
+     * @param {Function} callback
+     * @param {Knex.Transaction} trx
+     * @returns {Promise<T | null>}
+     */
+    public static async findFirst<T>(params: object = {}, callback?: any, trx?: Knex.Transaction): Promise<T | null> {
+      return db.findFirst<T>(this.getConnection(), this.table, params, any, trx);
+    }
+
+    /**
+     * Find record by it's id.
+     * Throws an exception if not found.
+     *
+     * @param {any} id
+     * @param {Function} callback
+     * @param {Knex.Transaction} trx
+     * @returns {Promise<T | null>}
+     */
+    public static findById<T>(id: any, callback?: any, trx?: Knex.Transaction): Promise<T | null> {
+      const idParams = this.buildIdParams(id);
+
+      return db.findFirst<T>(this.getConnection(), this.table, idParams, callback, trx);
+    }
+
+    /**
+     * Find record by it's id.
+     * Throws an exception if not found.
+     *
+     * @param {any} id
+     * @param {Function} callback
+     * @param {Knex.Transaction} trx
+     * @throws {ModelNotFoundError}
+     * @returns {Promise<T | null>}
+     */
+    public static findByIdOrFail<T>(id: any, callback?: any, trx?: Knex.Transaction): Promise<T | null> {
+      const idParams = this.buildIdParams(id);
+
+      return db.findFirst<T>(this.getConnection(), this.table, idParams, callback, trx).then(result => {
+        if (!result) {
+          throw new ModelNotFoundError(this.name + ' not found');
+        }
+
+        return result;
+      });
     }
 
     /**
@@ -137,8 +149,8 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {object} [params={}]
      * @param {PaginationParams} pageParams
      * @param {OrderBy[]} sortParams
-     * @param {Function} callback
      * @param {Knex.Transaction} trx
+     * @param {Function} callback
      * @returns {Knex.QueryBuilder}
      */
     public static findWithPageAndSort(
@@ -147,12 +159,9 @@ export function createBaseModel(resolver?: ConnectionResolver) {
       sortParams: OrderBy[],
       callback?: any,
       trx?: Knex.Transaction
-    ): Promise<any> {
+    ): Knex.QueryBuilder {
       const offset = (pageParams.page - 1) * pageParams.pageSize;
-      const qb = db
-        .find(this.getConnection(), this.table, params, this.defaultOrderBy, trx)
-        .offset(offset)
-        .limit(pageParams.pageSize);
+      const qb = this.find(params, trx).offset(offset).limit(pageParams.pageSize);
 
       if (sortParams && sortParams.length > 0) {
         qb.clearOrder();
@@ -176,11 +185,7 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @returns {Knex.QueryBuilder}
      */
     public static count(params: any = {}, callback?: any, trx?: Knex.Transaction): Promise<any> {
-      const qb = db
-        .find(this.getConnection(), this.table, params, this.defaultOrderBy, trx)
-        .clearSelect()
-        .count('*')
-        .clearOrder();
+      const qb = this.find(params, trx).clearSelect().count('*').clearOrder();
 
       if (callback) callback(qb);
 
@@ -194,49 +199,36 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {(object | object[])} data
      * @param {Transaction} [trx]
-     * @returns {Knex.QueryBuilder}
+     * @returns {Promise<T[]>}
      */
-    public static insert(data: object | object[], trx?: Knex.Transaction): Knex.QueryBuilder {
-      return db.insert(this.getConnection(), this.table, data, trx);
+    public static insert<T>(data: object | object[], trx?: Transaction): Promise<T[]> {
+      return db.insert<T>(this.getConnection(), this.table, data, trx);
     }
 
     /**
-     * Update records by primary key.
+     * Update records by id.
      *
-     * @param {string} pk
-     * @param {any} params
+     * @param {number} id
+     * @param {object} params
      * @param {Transaction} transaction
-     * @returns {Knex.QueryBuilder}
+     * @returns {Promise<object>}
      */
-    public static updateByPk(pk: string, params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
-      const pkParams = { [this.pk]: pk };
+    public static updateById<T>(id: any | number[], params: object, trx?: Transaction): Promise<T[]> {
+      const idParams = this.buildIdParams(id);
 
-      return db.update(this.getConnection(), this.table, pkParams, params, trx);
+      return db.update<T>(this.getConnection(), this.table, idParams, params, trx);
     }
 
     /**
      * Update records by where condition.
      *
      * @param {object} where
-     * @param {any} params
+     * @param {object} params
      * @param {Transaction} transaction
-     * @returns {Knex.QueryBuilder}
+     * @returns {Promise<T[]>}
      */
-    public static updateWhere(where: object, params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
-      return db.update(this.getConnection(), this.table, where, params, trx);
-    }
-
-    /**
-     * Delete a row by primary key.
-     *
-     * @param {string} pk
-     * @param {Transaction} transaction
-     * @returns {Knex.QueryBuilder}
-     */
-    public static removeByPk(pk: string, trx?: Knex.Transaction): Knex.QueryBuilder {
-      const pkParams = { [this.pk]: pk };
-
-      return db.remove(this.getConnection(), this.table, pkParams, trx);
+    public static update<T>(where: object, params: object, trx?: Transaction): Promise<T[]> {
+      return db.update<T>(this.getConnection(), this.table, where, params, trx);
     }
 
     /**
@@ -244,33 +236,35 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      *
      * @param {object} params
      * @param {Transaction} trx
-     * @returns {Knex.QueryBuilder}
+     * @returns {Promise<T[]>}
      */
-    public static deleteWhere(params: object, trx?: Knex.Transaction): Knex.QueryBuilder {
-      return db.remove(this.getConnection(), this.table, params, trx);
+    public static deleteById<T>(id: any, trx?: Transaction): Promise<T[]> {
+      const idParams = this.buildIdParams(id);
+
+      return db.remove<T>(this.getConnection(), this.table, idParams, trx);
     }
 
     /**
-     * Execute raw query.
+     * Delete row in table.
+     *
+     * @param {object} params
+     * @param {Transaction} trx
+     * @returns {Promise<T[]>}
+     */
+    public static delete<T>(params: object, trx?: Transaction): Promise<T[]> {
+      return db.remove<T>(this.getConnection(), this.table, params, trx);
+    }
+
+    /**
+     * Execute SQL raw query and return results.
      *
      * @param {string} sql
-     * @param {params} Array
-     * @param {Knex.Transaction} trx
-     * @returns {Knex.Raw}
+     * @param {RawBindingParams | ValueMap} params
+     * @param {Transaction} trx
+     * @returns {Promise<T[]>}
      */
-    public static raw(sql: string, params?: RawBindingParams | ValueMap, trx?: Knex.Transaction): Knex.Raw {
-      return db.raw(this.getConnection(), sql, params, trx);
-    }
-
-    /**
-     * Returns a query builder instance depending on the provided transaction.
-     *
-     * @param {Knex} connection
-     * @param {Knex.Transaction} [trx]
-     * @returns {(Knex.Transaction | Knex)}
-     */
-    public static queryBuilder(connection: Knex, trx?: Knex.Transaction): Knex.Transaction | Knex {
-      return db.queryBuilder(this.getConnection(), trx);
+    public static query<T>(sql: string, params?: RawBindingParams | ValueMap, trx?: Transaction): Promise<T[]> {
+      return db.query<T>(this.getConnection(), sql, params, trx);
     }
 
     /**
@@ -279,8 +273,109 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * @param {(trx: Transaction) => any} callback
      * @returns {any}
      */
-    public static transaction(callback: (trx: Knex.Transaction) => any): any {
+    public static transaction<T>(callback: (trx: Transaction) => any): any {
       return this.getConnection().transaction(callback);
+    }
+
+    /**
+     * Batch insert rows of data.
+     *
+     * @param {object[]} data
+     * @param {Transaction} [trx]
+     * @param {number} [chunksize=30]
+     * @returns {Promise<T[]>}
+     */
+    public static batchInsert<T>(data: object[], trx?: Transaction, chunksize: number = 30): Promise<T[]> {
+      return db.batchInsert<T>(this.getConnection(), this.table, data, chunksize, trx);
+    }
+
+    /**
+     * Execute SQL raw query and return scalar value.
+     *
+     * @param {string} sql
+     * @param {any} params
+     * @param {Transaction} trx
+     * @returns {Promise<T | null>}
+     */
+    public static getValue<T>(sql: string, params?: any, trx?: Transaction): Promise<T | null> {
+      return db.getValue<T>(this.getConnection(), sql, params, trx);
+    }
+
+    /**
+     * Execute SQL raw query returning a boolean result.
+     *
+     * @param {string} sql
+     * @param {*} [params]
+     * @param {Transaction} [trx]
+     * @returns {Promise<boolean>}
+     */
+    public static check(sql: string, params?: any, trx?: Transaction): Promise<boolean> {
+      return db.check(this.getConnection(), sql, params, trx);
+    }
+
+    /**
+     * Execute SQL raw query returning a JSON encoded result
+     * and produce the parsed object.
+     *
+     * @param {string} sql
+     * @param {*} [params]
+     * @param {Transaction} [trx]
+     * @returns {(Promise<T | null>)}
+     */
+    public static getJson<T>(sql: string, params?: any, trx?: Transaction): Promise<T | null> {
+      return db.getJson<T>(this.getConnection(), sql, params, trx);
+    }
+
+    /**
+     * Invoke a scalar-valued function and return results.
+     *
+     * Example usage:
+     *
+     *  const username = await User.invoke<string>('dbo.can_user_access_object', { userId: 10, objectId: 15 });
+     *
+     *  // => Runs SQL: SELECT dbo.can_user_access_object(:userId, :objectId)
+     *  // => Binds params: { userId: 10, objectId: 15 }
+     *
+     * @param {string} objectName
+     * @param {RawBindingParams | ValueMap} [params]
+     * @param {Knex.Transaction} [trx]
+     * @returns {Promise<T | null>}
+     */
+    public static invoke<T>(objectName: string, params?: any, trx?: Transaction): Promise<T | null> {
+      return db.invoke<T>(trx || this.getConnection(), objectName, params);
+    }
+
+    /**
+     * Execute a procedure and return the results returned (if any).
+     *
+     * Example usage:
+     *
+     *  await Recommendation.exec<string>('dbo.update_top_recommendations', { userId: 10, type });
+     *
+     *  // => Runs SQL: EXEC dbo.update_top_recommendations :userId, :type
+     *  // => Binds params: { userId: 10, type }
+     *
+     * @param {string} objectName
+     * @param {RawBindingParams | ValueMap} [params]
+     * @param {Knex.Transaction} [trx]
+     * @returns {Promise<T[]>}
+     */
+    public static exec<T>(objectName: string, params?: any, trx?: Transaction): Promise<T[]> {
+      return db.exec<T>(trx || this.getConnection(), objectName, params);
+    }
+
+    /**
+     * Build param object for given id.
+     *
+     * @param {any} id
+     * @returns {object}
+     */
+    static buildIdParams(id: any) {
+      if (typeof id === 'number' || typeof id === 'string') {
+        return { [this.id]: id };
+      }
+
+      return id;
     }
   };
 }
