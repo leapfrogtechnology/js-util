@@ -271,9 +271,14 @@ export function createBaseModel(resolver?: ConnectionResolver) {
      * Method to perform a transactional query execution.
      *
      * @param {(trx: Transaction) => any} callback
+     * @param {Transaction} trx
      * @returns {any}
      */
-    public static transaction<T>(callback: (trx: Transaction) => any): any {
+    public static transaction<T>(callback: (trx: Transaction) => any, trx?: Transaction): any {
+      if (trx) {
+        return callback(trx);
+      }
+
       return this.getConnection().transaction(callback);
     }
 
