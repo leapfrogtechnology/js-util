@@ -1,12 +1,9 @@
 /**
- * Parameters required for Paginator util module while calling it.
+ * Parameters required for pagination.
  */
 interface PaginationParams {
-  maxRows: number;
-  boundParams?: any;
-  currentPage: number;
-  hasOrderBy?: boolean;
-  totalCountQuery: string;
+  pageSize: number;
+  page: number;
 }
 
 export default PaginationParams;

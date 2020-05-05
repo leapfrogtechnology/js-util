@@ -3,7 +3,6 @@ import * as debug from 'debug';
 
 import { NS_DB } from './constants';
 import * as object from './utils/object';
-import ModelNotFoundError from './ModelNotFoundError';
 import RawBindingParams, { ValueMap } from './domain/RawBindingParams';
 
 interface BatchUpdateOptions {
@@ -78,97 +77,65 @@ async function withTimestamp(connection: Knex, table: string, params: any = {}):
   const exists = await connection.schema.hasColumn(table, 'updated_at');
 
   if (!exists || (exists && params.updatedAt)) {
-    return object.toSnakeCase(params);
+    return params;
   }
 
-  return { ...object.toSnakeCase(params), updated_at: connection.fn.now() };
+  return { ...params, updated_at: connection.fn.now() };
 }
 
 /**
  * Finds a record based on the params.
- * Returns null if no results were found.
  *
  * @param {Knex} connection
  * @param {string} table
  * @param {object} [params={}]
+ * @param {Function} callback
  * @param {Knex.Transaction} [trx]
- * @returns {(Promise<T | null>)}
+ * @returns {Knex.QueryBuilder}
  */
-export async function get<T>(
+export function find<T>(
   connection: Knex,
   table: string,
   params: object = {},
+  callback?: any,
+  trx?: Knex.Transaction
+): Knex.QueryBuilder {
+  const qb = queryBuilder(connection, trx).select('*').from(table).where(params);
+
+  if (callback) callback(qb);
+
+  return qb;
+}
+
+/**
+ * Finds a single record based on the params.
+ *
+ * @param {Knex} connection
+ * @param {string} table
+ * @param {object} [params={}]
+ * @param {Function} callback
+ * @param {Knex.Transaction} [trx]
+ * @returns {(Promise<T | null>)}
+ */
+export function findFirst<T>(
+  connection: Knex,
+  table: string,
+  params: object = {},
+  callback?: any,
   trx?: Knex.Transaction
 ): Promise<T | null> {
-  const [result] = await queryBuilder(connection, trx)
+  const qb = queryBuilder(connection, trx)
     .select('*')
     .from(table)
-    .where(object.toSnakeCase(params))
-    .limit(1);
+    .where(params)
+    .limit(1)
+    .then(([result]) => {
+      return result ? result : null;
+    });
 
-  if (!result) {
-    return null;
-  }
+  if (callback) callback(qb);
 
-  return object.toCamelCase(result);
-}
-
-/**
- * Find record by it's id.
- * Returns null if not found.
- *
- * @param {Knex} connection
- * @param {string} table
- * @param {number} id
- * @returns {(Promise<T | null>)}
- */
-export function getById<T>(connection: Knex, table: string, id: number, trx?: Knex.Transaction): Promise<T | null> {
-  return get<T>(connection, table, { id }, trx);
-}
-
-/**
- * Finds a record based on the params.
- *
- * @param {Knex} connection
- * @param {string} table
- * @param {object} [params={}]
- * @param {Knex.Transaction} [trx]
- * @throws {ModelNotFoundError}
- * @returns {Promise<T>}
- */
-export async function find<T>(
-  connection: Knex,
-  table: string,
-  params: object = {},
-  trx?: Knex.Transaction
-): Promise<T> {
-  const result = await get<T>(connection, table, params, trx);
-
-  if (!result) {
-    throw new ModelNotFoundError('Model not found');
-  }
-
-  return result;
-}
-
-/**
- * Find all records based on the params.
- *
- * @param {Knex} connection
- * @param {string} table
- * @param {object} [params={}]
- * @param {Knex.Transaction} [trx]
- * @returns {Promise<T[]>}
- */
-export async function findAll<T>(
-  connection: Knex,
-  table: string,
-  params: object = {},
-  trx?: Knex.Transaction
-): Promise<T[]> {
-  const rows = await queryBuilder(connection, trx).select('*').from(table).where(object.toSnakeCase(params));
-
-  return object.toCamelCase(rows);
+  return qb;
 }
 
 /**
@@ -178,47 +145,15 @@ export async function findAll<T>(
  * @param {string} table
  * @param {(object | object[])} data
  * @param {Knex.Transaction} [trx]
- * @returns {Promise<T[]>}
+ * @returns {Knex.QueryBuilder}
  */
-export async function insert<T>(
+export function insert<T>(
   connection: Knex,
   table: string,
   data: object | object[],
   trx?: Knex.Transaction
-): Promise<T[]> {
-  const qb = queryBuilder(connection, trx);
-  const result = await qb.insert(object.toSnakeCase(data)).into(table).returning('*');
-
-  return object.toCamelCase(result);
-}
-
-/**
- * Update records by id.
- *
- * @param {Knex} connection
- * @param {string} table
- * @param {(number | number[])} id
- * @param {object} params
- * @param {Knex.Transaction} [trx]
- * @returns {Promise<T[]>}
- */
-export async function updateById<T>(
-  connection: Knex,
-  table: string,
-  id: number | number[],
-  params: object,
-  trx?: Knex.Transaction
-): Promise<T[]> {
-  const qb = queryBuilder(connection, trx);
-  const updateParams = await withTimestamp(connection, table, params);
-
-  const result = await qb
-    .update(updateParams)
-    .table(table)
-    .whereIn('id', Array.isArray(id) ? id : [id])
-    .returning('*');
-
-  return object.toCamelCase(result);
+): Knex.QueryBuilder {
+  return queryBuilder(connection, trx).insert(data).into(table).returning('*');
 }
 
 /**
@@ -229,19 +164,16 @@ export async function updateById<T>(
  * @param {Transaction} transaction
  * @returns {Promise<T[]>}
  */
-export async function updateWhere<T>(
+export async function update<T>(
   connection: Knex,
   table: string,
   where: object,
   params: object,
   trx?: Knex.Transaction
 ): Promise<T[]> {
-  const qb = queryBuilder(connection, trx);
   const updateParams = await withTimestamp(connection, table, params);
 
-  const result = await qb.update(updateParams).table(table).where(object.toSnakeCase(where)).returning('*');
-
-  return object.toCamelCase(result);
+  return queryBuilder(connection, trx).update(updateParams).table(table).where(where).returning('*');
 }
 
 /**
@@ -253,11 +185,8 @@ export async function updateWhere<T>(
  * @param {Transaction} trx
  * @returns {Promise<T[]>}
  */
-export async function remove<T>(connection: Knex, table: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
-  const qb = queryBuilder(connection, trx);
-  const result = await qb.where(object.toSnakeCase(params)).from(table).del().returning('*');
-
-  return object.toCamelCase(result);
+export function remove<T>(connection: Knex, table: string, params: object, trx?: Knex.Transaction): Promise<T[]> {
+  return queryBuilder(connection, trx).where(params).from(table).del().returning('*');
 }
 
 /**
@@ -269,16 +198,13 @@ export async function remove<T>(connection: Knex, table: string, params: object,
  * @param {Knex.Transaction} [trx]
  * @returns {Promise<T[]>}
  */
-export async function query<T>(
+export function query<T>(
   connection: Knex,
   sql: string,
   params?: RawBindingParams | ValueMap,
   trx?: Knex.Transaction
 ): Promise<T[]> {
-  const conn = queryBuilder(connection, trx);
-  const result = params ? await conn.raw(sql, params) : await conn.raw(sql);
-
-  return object.toCamelCase(result);
+  return params ? queryBuilder(connection, trx).raw(sql, params) : queryBuilder(connection, trx).raw(sql);
 }
 
 /**
@@ -291,17 +217,14 @@ export async function query<T>(
  * @param {Knex.Transaction} [trx]
  * @returns {Promise<T[]>}
  */
-export async function batchInsert<T>(
+export function batchInsert<T>(
   connection: Knex,
   table: string,
   data: object[],
   chunkSize: number,
   trx?: Knex.Transaction
 ): Promise<T[]> {
-  const qb = queryBuilder(connection, trx);
-  const result = await qb.batchInsert(table, object.toSnakeCase(data), chunkSize).returning('*');
-
-  return object.toCamelCase(result);
+  return queryBuilder(connection, trx).batchInsert(table, data, chunkSize).returning('*');
 }
 
 /**
