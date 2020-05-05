@@ -1,5 +1,13 @@
 # Change Log
 
+## [@leapfrogtechnology/db-model@1.0.0-beta.3](https://github.com/leapfrogtechnology/js-util/tree/@leapfrogtechnology/db-model@1.0.0-beta.3) (2020-05-05)
+
+[Full Changelog](https://github.com/leapfrogtechnology/js-util/compare/@leapfrogtechnology/db-model@1.0.0-beta.2...@leapfrogtechnology/db-model@1.0.0-beta.3)
+
+**Changes**
+
+- Refactor model.ts and db.ts [\#7](https://github.com/leapfrogtechnology/js-util/pull/7) ([FriedDust](https://github.com/FriedDust))
+
 ## [@leapfrogtechnology/db-model@1.0.0-beta.2](https://github.com/leapfrogtechnology/js-util/tree/@leapfrogtechnology/db-model@1.0.0-beta.2) (2020-04-25)
 
 [Full Changelog](https://github.com/leapfrogtechnology/js-util/compare/@leapfrogtechnology/db-model@1.0.0-beta.1...@leapfrogtechnology/db-model@1.0.0-beta.2)
